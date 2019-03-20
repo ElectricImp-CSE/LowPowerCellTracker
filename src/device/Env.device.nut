@@ -22,30 +22,30 @@
 // ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-// Hardware Abstraction Layer
-// NOTE: All hardware objects are mapped to GLOBAL 
-// variables. These variables are used throughout 
-// the code, so vairable names should NOT be changed.
+// Environmental Monitoring File
 
-// NOTE: The hardware for this tracker is NOT compatible with the impC001 breakout board. 
+// Manages Environmental Monitoring  
+// Dependencies: HTS221 (may configure sensor i2c)
+// Initializes: HTS221
+class Env {
 
-// impC001-ibc-tracker rev1.0    
-LED_RED         <- hardware.pinM;
-LED_GREEN       <- hardware.pinYT;
-LED_BLUE        <- hardware.pinYJ;
+    th = null;
 
-GPS_UART        <- hardware.uartNU;
-PWR_GATE_EN     <- hardware.pinYB;
+    constructor(configureI2C) {
+        if (configureI2C) SENSOR_I2C.configure(CLOCK_SPEED_400_KHZ);
+        th = HTS221(SENSOR_I2C, TEMP_HUMID_ADDR);
+    }
 
-BATT_CHGR_INT   <- hardware.pinL;
-
-// Sensor i2c AKA i2c0 in schematics
-SENSOR_I2C      <- hardware.i2cXDC;     
-ACCEL_INT       <- hardware.pinW;      
-TEMP_HUMID_ADDR <- 0xBE;
-ACCEL_ADDR      <- 0x32;
-BATT_CHGR_ADDR  <- 0xD4;
-FUEL_GAUGE_ADDR <- 0x6C;   
-
-// Recommended for offline logging, remove when in production    
-LOGGING_UART    <- hardware.uartDCAB;
+    function getTempHumid(cb) {
+        th.setMode(HTS221_MODE.ONE_SHOT);
+        // Trigger callback only if we get a reading.
+        th.read(function(res) {
+            if ("error" in res) {
+                ::error("Temperature/Humidity reading error: " + res.error);
+            } else {
+                cb(res);
+            }
+        }.bindenv(this))
+    }
+    
+}

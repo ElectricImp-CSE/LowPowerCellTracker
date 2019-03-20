@@ -1,15 +1,17 @@
-# Low Power Cellular Asset Tracker
+# Low Power Cellular IBC Asset Tracker
 
 ## Overview
 
-This is software for a low power cellular asset tracker. The tracker monitors for movement, and if movement has been detected it will report daily, otherwise the device will report once a week sending GPS location, battery status, and movement status. 
+This is software for a low power cellular asset tracker. The tracker monitors for movement, and if movement has been detected it will report daily, otherwise the device will report once a week sending GPS location, temperature, accelerometer readings, and movement status. 
 
 ## Hardware
 
 impC001 cellular module
-impC001 breakout board
-u-blox M8N GPS module
-[3.7V 2000mAh battery from Adafruit](https://www.adafruit.com/product/2011?gclid=EAIaIQobChMIh7uL6pP83AIVS0sNCh1NNQUsEAQYAiABEgKFA_D_BwE)
+impC-ibc-tracker with GNSS
+
+**NOTE:** Hardware differences make this code incompatible with the impC001 breakout board tracker. Do not use this code unless your hardware is compatible.
+
+Differences from the breakout board include: RGB LED control (pins vs SPI), power routing (GPS is the only component that requires power gate to be enabled), battery charger and fuel gauge changes TBD, may be different components.  
 
 ## Setup
 
@@ -42,7 +44,9 @@ Settings are all stored as constants. Modify to customize the application.
 
 ## Measurements
 
-Rough wake timings base on code committed on 3/1/18 under good cellular conditions and in a location that can get a GPS fix.
+No hardware is available to test on, so no measurements have been taken for impC-ibc-tracker. 
+
+Rough wake timings for impC001 breakout board with GPS base on code committed on 3/1/18 under good cellular conditions and in a location that can get a GPS fix .
 
 - Wake with no connections ~650-655 ms
 - Wake and connection ~40s

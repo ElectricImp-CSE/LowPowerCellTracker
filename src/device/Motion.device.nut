@@ -25,9 +25,14 @@
 // Motion Monitoring File
 
 // Number of readings per sec
-const ACCEL_DATA_RATE    = 100;
+const ACCEL_DATA_RATE     = 100;
 // Number of readings condition must be true before int triggered 
-const ACCEL_INT_DURATION = 50;  
+const ACCEL_INT_DURATION  = 50;  
+// Constants used to determine if container is upright
+const ACCEL_UPRIGHT_X     = 1;
+const ACCEL_UPRIGHT_Y     = 0;
+const ACCEL_UPRIGHT_Z     = 0;
+const ACCEL_UPRIGHT_RANGE = 0.5;
 
 // Manages Motion Sensing  
 // Dependencies: LIS3DH (may configure sensor i2c)
@@ -95,6 +100,21 @@ class Motion {
         local res = accel.getInterruptTable();
         // Return boolean - if motion event has occurred
         return res.int1;
+    }
+
+    // Returns boolean if container is upright
+    function isUpright() {
+        // Enable accel if needed (check register and enable if needed)
+        // Get accel reading
+        // Disable accel if needed (if we just enabled, then disable)
+        // Check reading against expected to determine if container is upright 
+    }
+
+    // Helper that returns boolean if accel reading is within the expected range
+    function _inRange(actual, expected) {
+        local min = expected + ACCEL_UPRIGHT_RANGE;
+        local max = expected - ACCEL_UPRIGHT_RANGE;
+        return (actual <= max && actual >= min);
     }
 
 }

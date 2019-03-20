@@ -28,6 +28,7 @@
 #require "UBloxM8N.device.lib.nut:1.0.1"
 #require "UbxMsgParser.lib.nut:2.0.0"
 #require "LIS3DH.device.lib.nut:2.0.2"
+#require "HTS221.device.lib.nut:2.0.1"
 #require "SPIFlashFileSystem.device.lib.nut:2.0.0"
 #require "ConnectionManager.lib.nut:3.1.1"
 #require "MessageManager.lib.nut:2.4.0"
@@ -49,6 +50,7 @@
 @include __PATH__ + "/Location.device.nut"
 @include __PATH__ + "/Motion.device.nut"
 @include __PATH__ + "/Battery.device.nut"
+@include __PATH__ + "/Env.device.nut"
 
 
 // Main Application
@@ -62,7 +64,7 @@ const REPORT_TIME_SEC    = 604800; // 60s * 60m * 24h * 7d
 // Force in Gs that will trigger movement interrupt
 const MOVEMENT_THRESHOLD = 0.05;
 // Accuracy of GPS fix in meters
-const LOCATION_ACCURACY  = 10;
+const LOCATION_ACCURACY  = 5;
 // Constant used to validate imp's timestamp 
 const VALID_TS_YEAR      = 2019;
 // Maximum time to stay awake
@@ -79,11 +81,11 @@ class MainController {
     move        = null;
     loc         = null;
     persist     = null;
-    battery     = null; 
 
     bootTime    = null;
     fix         = null;
     battStatus  = null;
+    thReading   = null;
     readyToSend = null;
     sleep       = null;
     reportTimer = null;
@@ -285,6 +287,10 @@ class MainController {
         // TODO: Decide if movement should always be included or only if true
         if (persist.getMoveDetected()) report.movement <- true;
         if (battStatus != null) report.battStatus <- battStatus;
+        if (thReading != null) {
+            report.temperature <- thReading.temperature;
+            report.humidity <- thReading.humidity;
+        }
         if (fix != null) report.fix <- fix;
 
         // Toggle send flag
@@ -311,8 +317,19 @@ class MainController {
         // NOTE: I2C is configured when Motion class is initailized in the 
         // constructor of this class, so we don't need to configure it here.
         // Initialize Battery Monitor without configuring i2c
-        if (battery == null) battery = Battery(false);
+        local battery = Battery(false);
         battery.getStatus(onBatteryStatus.bindenv(this));
+    }
+
+    // Initializes Env Monitor and gets temperature and humidity
+    function getSensorReadings() {
+        // check if upright
+        // Get temperature and humidity reading
+        // NOTE: I2C is configured when Motion class is initailized in the 
+        // constructor of this class, so we don't need to configure it here.
+        // Initialize Battery Monitor without configuring i2c
+        local env = Env();
+        env.getTempHumid(onTempHumid.bindenv(this));
     }
 
     // Updates report time
@@ -356,6 +373,9 @@ class MainController {
     // Pin state change callback & on wake pin action
     // If event valid, disables movement interrupt and store movement flag
     function onMovement() { 
+        // TODO: For demo purposes, may want to update logic to more of an 
+        // alert notification method and add check position before disabling.
+
         // Check if movement occurred
         // Note: Motion detected method will clear interrupt when called
         if (move.detected()) {
@@ -405,6 +425,13 @@ class MainController {
         battStatus = status;
     }
 
+    // Stores temperature and humidity reading for use in report
+    function onTempHumid(reading) {
+        ::debug("Get temperature and humidity complete:")
+        ::debug(format("Current Humidity: %0.2f %s, Current Temperature: %0.2f °C", reading.humidity, "%", reading.temperature));
+        thReading = reading;
+    }
+
     // Sleep Management
     // -------------------------------------------------------------
 
@@ -437,8 +464,9 @@ class MainController {
             // Power up GPS and try to get a location fix
             getLocation();
             // Get battery status
-            getBattStatus();
-            // TODO: Get sensor readings for report, if desired.
+            // getBattStatus();
+            // Get sensor readings for report.
+            getSensorReadings();
         } else {
             // Go to sleep
             powerDown();
