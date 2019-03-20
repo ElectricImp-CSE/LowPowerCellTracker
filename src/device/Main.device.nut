@@ -43,7 +43,11 @@
 // Supporting files
 // NOTE: Order of files matters do NOT change unless you know how it will effect 
 // the application
-@include __PATH__ + "/Hardware.device.nut"
+
+// Manually select the hardware file that matches the device you are deploying to.
+// @include __PATH__ + "/HardwareCustomIBC.device.nut"
+@include __PATH__ + "/HardwareBreakOut.device.nut"
+
 @include __PATH__ + "/../shared/Logger.shared.nut"
 @include __PATH__ + "/../shared/Constants.shared.nut"
 @include __PATH__ + "/Persist.device.nut"
@@ -56,6 +60,9 @@
 // Main Application
 // -----------------------------------------------------------------------
 
+// NOTE: If changing CHECK_IN_TIME_SEC uncomment code in the constructor that 
+// overwrites the currently stored checking timestamp, so changes take will take 
+// effect immediately.
 // Wake every x seconds to check if report should be sent 
 const CHECK_IN_TIME_SEC  = 86400; // 60s * 60m * 24h 
 // Wake every x seconds to send a report, regaurdless of check results
@@ -86,6 +93,7 @@ class MainController {
     fix         = null;
     battStatus  = null;
     thReading   = null;
+    isUpright   = null;
     readyToSend = null;
     sleep       = null;
     reportTimer = null;
@@ -291,6 +299,7 @@ class MainController {
             report.temperature <- thReading.temperature;
             report.humidity <- thReading.humidity;
         }
+        if (isUpright != null) report.containerUpright <- isUpright;
         if (fix != null) report.fix <- fix;
 
         // Toggle send flag
@@ -323,13 +332,19 @@ class MainController {
 
     // Initializes Env Monitor and gets temperature and humidity
     function getSensorReadings() {
-        // check if upright
         // Get temperature and humidity reading
         // NOTE: I2C is configured when Motion class is initailized in the 
         // constructor of this class, so we don't need to configure it here.
-        // Initialize Battery Monitor without configuring i2c
+        // Initialize Environmental Monitor without configuring i2c
         local env = Env();
         env.getTempHumid(onTempHumid.bindenv(this));
+    }
+
+    // Checks container position using Accelerometer
+    function getContainerPosition() {
+        // Movement monitor is already initialized in constructor,
+        // just check position 
+        move.isUpright(onPositionIsUpright.bindenv(this));
     }
 
     // Updates report time
@@ -373,9 +388,6 @@ class MainController {
     // Pin state change callback & on wake pin action
     // If event valid, disables movement interrupt and store movement flag
     function onMovement() { 
-        // TODO: For demo purposes, may want to update logic to more of an 
-        // alert notification method and add check position before disabling.
-
         // Check if movement occurred
         // Note: Motion detected method will clear interrupt when called
         if (move.detected()) {
@@ -432,6 +444,12 @@ class MainController {
         thReading = reading;
     }
 
+    // Stores container position for use in report
+    function onPositionIsUpright(isUp) {
+        ::debug("Container is upright: " + isUp);
+        isUpright = isUp;
+    }
+
     // Sleep Management
     // -------------------------------------------------------------
 
@@ -443,7 +461,7 @@ class MainController {
         
         // Our timer has expired, update it to next interval
         if (wakeTime == null || now >= wakeTime) {
-            wakeTime = (wakeTime == null) ? now + CHECK_IN_TIME_SEC : wakeTime + CHECK_IN_TIME_SEC;
+            wakeTime = (wakeTime == null || wakeTime < 0) ? now + CHECK_IN_TIME_SEC : wakeTime + CHECK_IN_TIME_SEC;
             persist.setWakeTime(wakeTime);
         }
 
@@ -463,10 +481,14 @@ class MainController {
             lpm.connect();
             // Power up GPS and try to get a location fix
             getLocation();
-            // Get battery status
-            // getBattStatus();
-            // Get sensor readings for report.
+            // Get sensor readings for report
             getSensorReadings();
+            // Check if container is upright
+            getContainerPosition();
+            // Get battery status
+            // NOTE: Until Hardware determination and Fuel Gauge Library 
+            // implemented. Don't include battery status in report.
+            // getBattStatus();
         } else {
             // Go to sleep
             powerDown();
@@ -481,9 +503,9 @@ class MainController {
         ::debug("Going to sleep...");
 
         // While in development, may want to use wakeup to give time for uart logs to complete 
-        // imp.wakeup(2, function() {
+        imp.wakeup(2, function() {
             (sleep != null) ? sleep() : lpm.sleepFor(getSleepTimer());
-        // }.bindenv(this))
+        }.bindenv(this))
     }
 
     // Helpers
@@ -492,6 +514,9 @@ class MainController {
     // Returns boolean, checks for event(s) or if report time has passed
     function shouldConnect() {
         // Check for events 
+        // Note: We are not currently storing position changes. The assumption
+        // is that if we change position then movement will be detected and trigger
+        // a report to be generated.
         local haveMoved = persist.getMoveDetected();
         ::debug("Movement detected: " + haveMoved);
         if (haveMoved) return true;

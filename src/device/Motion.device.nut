@@ -29,9 +29,9 @@ const ACCEL_DATA_RATE     = 100;
 // Number of readings condition must be true before int triggered 
 const ACCEL_INT_DURATION  = 50;  
 // Constants used to determine if container is upright
-const ACCEL_UPRIGHT_X     = 1;
+const ACCEL_UPRIGHT_X     = 0;
 const ACCEL_UPRIGHT_Y     = 0;
-const ACCEL_UPRIGHT_Z     = 0;
+const ACCEL_UPRIGHT_Z     = 1;
 const ACCEL_UPRIGHT_RANGE = 0.5;
 
 // Manages Motion Sensing  
@@ -102,19 +102,59 @@ class Motion {
         return res.int1;
     }
 
-    // Returns boolean if container is upright
-    function isUpright() {
-        // Enable accel if needed (check register and enable if needed)
+    // Passes boolean (if container is upright) to callback
+    function isUpright(cb) {
         // Get accel reading
-        // Disable accel if needed (if we just enabled, then disable)
-        // Check reading against expected to determine if container is upright 
+        if (_isAccelEnabled()) {
+            // Take reading
+            accel.getAccel(function(reading) {
+                _checkAccelReading(reading, cb);
+            }.bindenv(this));
+        } else {
+            // Enable Accel
+            accel.setDataRate(ACCEL_DATA_RATE);
+            accel.enable(true);
+            // We need to wait for accel to 
+            // complete at least 1 ODR cycle
+            imp.wakeup(0.1, function() {
+                accel.getAccel(function(reading) {
+                    _checkAccelReading(reading, cb);
+                }.bindenv(this));
+                // Disable Accel
+                accel.setDataRate(0);
+                accel.enable(false);
+            }.bindenv(this))
+        }
+    }
+
+    // Helper that runs check on accelerometer reading data
+    function _checkAccelReading(reading, cb) {
+        if ("error" in reading) {
+            // Log error, don't trigger callback
+            ::error("Error determining position. Accel reading error: " + reading.error);
+        } else {
+            ::debug(format("Accel reading x: %f, y: %f, z: %f", reading.x, reading.y, reading.z));
+            // Check reading against expected to determine if container is upright 
+            cb(_inRange(reading.x, ACCEL_UPRIGHT_X) && 
+               _inRange(reading.y, ACCEL_UPRIGHT_Y) &&
+               _inRange(reading.z, ACCEL_UPRIGHT_Z));
+        }
     }
 
     // Helper that returns boolean if accel reading is within the expected range
     function _inRange(actual, expected) {
-        local min = expected + ACCEL_UPRIGHT_RANGE;
-        local max = expected - ACCEL_UPRIGHT_RANGE;
+        local max = expected + ACCEL_UPRIGHT_RANGE;
+        local min = expected - ACCEL_UPRIGHT_RANGE;
+        local inRange = (actual <= max && actual >= min);
+        ::debug(format("Value: %f, Expected: %f, Min: %f, Max: %f, inRange: ", actual, expected, min, max) + inRange);
         return (actual <= max && actual >= min);
+    }
+
+    // Helper returns false if accel is enabled, otherwise returns the 
+    function _isAccelEnabled() {
+        // bits 0-2 xyz enabled, 3 low-power enabled, 4-7 data rate
+        local val = accel._getReg(LIS3DH_CTRL_REG1);
+        return (val & 0x07) ? true : false;
     }
 
 }

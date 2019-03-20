@@ -6,19 +6,58 @@ This is software for a low power cellular asset tracker. The tracker monitors fo
 
 ## Hardware
 
+Hardware differences between the Custom IBC tracker and the Breakout board require some code customization. 
+<br>
+Differences from the breakout board include: Different pin mapping (different Hardware files to be included), RGB LED control (pins vs SPI, should not effect the current code since no LED control has been programmed), power routing (GPS is the only component that requires power gate to be enabled), battery charger and fuel gauge changes TBD, may be different components (Battery Charger and Fuel Gauge code are included but the main file doesn't instantiate or use.).
+<br>
+See below for setup instructions.
+
+### Setup Custom IBC Tracker Board
+
 impC001 cellular module
+<br>
 impC-ibc-tracker with GNSS
 
-**NOTE:** Hardware differences make this code incompatible with the impC001 breakout board tracker. Do not use this code unless your hardware is compatible.
+<br>
+In the src/device/Main.device.nut file make sure `@include __PATH__ + "/HardwareBreakOut.device.nut"` is commented out and `@include __PATH__ + "/HardwareCustomIBC.device.nut"` is uncommented
 
-Differences from the breakout board include: RGB LED control (pins vs SPI), power routing (GPS is the only component that requires power gate to be enabled), battery charger and fuel gauge changes TBD, may be different components.  
+```
+@include __PATH__ + "/HardwareCustomIBC.device.nut"
+// @include __PATH__ + "/HardwareBreakOut.device.nut"
+```
 
-## Setup
+### Setup ImpC001 Breakout Board
+
+impC001 cellular module
+<br>
+impC001 breakout board
+<br>
+u-blox M8N GPS module
+<br>
+[3.7V 2000mAh battery from Adafruit](https://www.adafruit.com/product/2011?gclid=EAIaIQobChMIh7uL6pP83AIVS0sNCh1NNQUsEAQYAiABEgKFA_D_BwE)
+<br>
+In the src/device/Main.device.nut file make sure `@include __PATH__ + "/HardwareCustomIBC.device.nut"` is commented out and `@include __PATH__ + "/HardwareBreakOut.device.nut"` is uncommented
+
+```
+// @include __PATH__ + "/HardwareCustomIBC.device.nut"
+@include __PATH__ + "/HardwareBreakOut.device.nut"
+```
+
+## Software Setup
 
 This project uses u-blox AssistNow services, and requires and account and authorization token from u-blox. To apply for an account register [here](http://www.u-blox.com/services-form.html). 
 <br>
 <br>
 This project has been written using [VS code plug-in](https://github.com/electricimp/vscode). All configuration settings and pre-processed files have been excluded. Follow the instructions [here](https://github.com/electricimp/vscode#installation) to install the plug-in and create a project. 
+<br>
+<br>
+Add github credentials to `auth.info` file "builderSettings" (only needed if pulling code directly from GitHub repositories).
+```
+  "builderSettings": {
+    "github_user": "<YOUR-GITHUB-USERNAME>",
+    "github_token": "<YOUR-GITHUB-TOKEN>"
+  }
+```
 <br>
 <br>
 Replace the **src** folder in your newly created project with the **src** folder found in this repository
