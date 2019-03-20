@@ -39,8 +39,9 @@
 
 class MainController {
     
-    loc = null;
-    mm  = null;
+    loc   = null;
+    mm    = null;
+    cloud = null;
 
     constructor() {
         // Initialize Logger 
@@ -57,6 +58,9 @@ class MainController {
         // Open listeners for messages from device
         mm.on(MM_REPORT, processReport.bindenv(this));
         mm.on(MM_ASSIST, getAssist.bindenv(this));
+
+        // Initialize Cloud Service (Azure IoT Hub)
+        // cloud = Cloud();
     }
 
     function processReport(msg, reply) {
@@ -86,6 +90,7 @@ class MainController {
             // }
 
         // TODO: Send device data to cloud service
+        // cloud.send(report);
     }
 
     function getAssist(msg, reply) {

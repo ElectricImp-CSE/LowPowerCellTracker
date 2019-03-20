@@ -1,0 +1,93 @@
+// MIT License
+
+// Copyright 2019 Electric Imp
+
+// SPDX-License-Identifier: MIT
+
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+
+// The above copyright notice and this permission notice shall be
+// included in all copies or substantial portions of the Software.
+
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+// EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO
+// EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES
+// OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+// ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+// OTHER DEALINGS IN THE SOFTWARE.
+
+// Cloud Service File 
+
+// Manages Cloud Service Communications  
+// Dependencies: AzureIoTHub
+// Initializes: AzureIoTHub
+class Cloud {
+
+    devConnStr = null;
+    client     = null;
+
+    constructor() {
+        // Stores this devices connection string in class variable
+        _getDeviceConnString();
+
+        client = (devConnStr, _onConnected.bindenv(this), _onDisconnected.bindenv(this));
+        client.connect();
+    }
+
+    function send(data) {
+        // TODO: Format report data
+        local msg = AzureIoTHub.Message(data);
+        client.sendMessage(msg, _onMsgSent.bindenv(this));
+    }
+
+    function _onMsgSent(err, msg) {
+        if (err != 0) {
+            ::error("IotHub send message failed: " + err);
+            // TODO: Implement retry sending
+            return;
+        }
+        ::debug("IoTHub message sent");
+    }
+
+    function _onConnected(err) {
+        if (err != 0) {
+            ::error("IotHub connect failed: " + err);
+            return;
+        }
+        ::debug("IoTHub connected");
+    }
+
+    function _onDisconnected(err) {
+        if (err != 0) {
+            ::error("IoTHub disconnected unexpectedly with code: " + err);
+            
+            // Reconnect if disconnection is not initiated by application
+            client.connect();
+        } else {
+            ::debug("IoTHub disconnected by application");
+        }
+    }
+
+    function _getDeviceConnString() {
+        // Use hardcoded values stored in imp.config file to get 
+        // IoTHub Device Connection string for this device
+        switch(imp.configparams.deviceid) {
+            case "@{DEV_1_ID}":
+                devConnStr = "@{DEV_1_IOTHUB_DEV_CONN_STR}";
+                break;
+            case "@{DEV_2_ID}": 
+                devConnStr = "@{DEV_2_IOTHUB_DEV_CONN_STR}";
+                break;
+            case "@{DEV_3_ID}":
+                devConnStr = "@{DEV_3_IOTHUB_DEV_CONN_STR}";
+                break;
+        }
+    }
+
+}
