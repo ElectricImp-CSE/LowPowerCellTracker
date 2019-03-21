@@ -175,6 +175,7 @@ class Location {
         if (fixType >= FIX_TYPE.FIX_3D) {
             // Get timestamp for this fix
             local fixTime = (hardware.millis() - bootTime) / 1000.0;
+            local accuracy = _getAccuracy(payload.hAcc);
 
             // If this is the first fix, create fix report table
             if (gpsFix == null) {
@@ -182,6 +183,7 @@ class Location {
                 gpsFix = {
                     "secTo1stFix" : fixTime
                 };
+                ::debug(format("first fix time %s, satellites %d, fix type %d, accuracy %s", timeStr, payload.numSV, fixType, accuracy.tostring()));
             }
 
             // Add/Update fix report values
@@ -191,7 +193,7 @@ class Location {
             gpsFix.lon <- UbxMsgParser.toDecimalDegreeString(payload.lon);
             gpsFix.lat <- UbxMsgParser.toDecimalDegreeString(payload.lat);
             gpsFix.time <- timeStr;
-            gpsFix.accuracy <- _getAccuracy(payload.hAcc);
+            gpsFix.accuracy <- accuracy;
 
             if (onAccFix != null) _checkAccuracy();
         } else {

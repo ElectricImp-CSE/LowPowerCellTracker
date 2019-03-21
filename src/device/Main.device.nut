@@ -366,8 +366,14 @@ class MainController {
         cancelReportTimer();
         // Start a timer to send report if no GPS fix is found
         reportTimer = imp.wakeup(GPS_TIMEOUT, function() {
-            ::debug("GPS failed to get a fix. Disabling GPS power."); 
+            ::debug("GPS failed to get an accurate fix. Disabling GPS power."); 
             PWR_GATE_EN.write(0);    
+
+            // If GPS got a fix, log the latest fix data
+            local fix = loc.gpsFix;
+            if (fix != null) {
+                ::debug(format("fixType: %s, numSats: %s, accuracy: %s", fix.fixType.tostring(), fix.numSats.tostring(), fix.accuracy.tostring()));
+            } 
 
             // Send report if connection handler has already run
             // and report has not been sent

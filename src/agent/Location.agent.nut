@@ -32,10 +32,10 @@ const UBLOX_ASSISTNOW_TOKEN = "@{UBLOX_ASSISTNOW_TOKEN}";
 // Initializes: UBloxAssistNow(agent) Library
 class Location {
     
-    assist             = null;
+    assist = null;
 
     constructor() {
-        assist  = UBloxAssistNow(UBLOX_ASSISTNOW_TOKEN);
+        assist = UBloxAssistNow(UBLOX_ASSISTNOW_TOKEN);
     }
 
     function getOnlineAssist(onResp) {
