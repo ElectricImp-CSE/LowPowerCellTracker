@@ -32,7 +32,7 @@ const ACCEL_INT_DURATION  = 50;
 const ACCEL_UPRIGHT_X     = 0;
 const ACCEL_UPRIGHT_Y     = 0;
 const ACCEL_UPRIGHT_Z     = 1;
-const ACCEL_UPRIGHT_RANGE = 0.5;
+const ACCEL_UPRIGHT_RANGE = 0.3;
 
 // Manages Motion Sensing  
 // Dependencies: LIS3DH (may configure sensor i2c)

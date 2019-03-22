@@ -48,6 +48,9 @@ In the src/device/Main.device.nut file make sure `@include __PATH__ + "/Hardware
 This project uses u-blox AssistNow services, and requires and account and authorization token from u-blox. To apply for an account register [here](http://www.u-blox.com/services-form.html). 
 <br>
 <br>
+The product is sending data to Azure IoT Hub using MQTT. Currently the code doesn't register devices. Devices must be manually registered using Azure portal or Azure IoT Central. Devices will use device connection strings to send data, see below for instructions on storing device connection string variables. This code will use the latest Azure IoTHub library and MQTT to send data, so make sure your Electric Imp device group is set to imp servers that support MQTT. 
+<br>
+<br>
 This project has been written using [VS code plug-in](https://github.com/electricimp/vscode). All configuration settings and pre-processed files have been excluded. Follow the instructions [here](https://github.com/electricimp/vscode#installation) to install the plug-in and create a project. 
 <br>
 <br>
@@ -63,14 +66,20 @@ Add github credentials to `auth.info` file "builderSettings" (only needed if pul
 Replace the **src** folder in your newly created project with the **src** folder found in this repository
 <br>
 <br>
-Update settings/imp.config "device_code", "agent_code", and "builderSettings" to the following (updating the UBLOX_ASSISTNOW_TOKEN with your u-blox Assist Now authorization token):
+Update settings/imp.config "device_code", "agent_code", and "builderSettings" to the following (updating the UBLOX_ASSISTNOW_TOKEN with your u-blox Assist Now authorization token, and the imp device IDs along with their corresponding Azure IoTHub device connection strings.):
 
 ```
     "device_code": "src/device/Main.device.nut"
     "agent_code": "src/agent/Main.agent.nut"
     "builderSettings": {
         "variable_definitions": {
-            "UBLOX_ASSISTNOW_TOKEN" : "<YOUR-UBLOX-ASSIST-NOW-TOKEN-HERE>"
+            "UBLOX_ASSISTNOW_TOKEN" : "<YOUR-UBLOX-ASSIST-NOW-TOKEN-HERE>",
+            "DEV_1_ID" : "<IMP-DEV-ID>", 
+            "DEV_2_ID" : "<IMP-DEV-ID>", 
+            "DEV_3_ID" : "<IMP-DEV-ID>",
+            "DEV_1_IOTHUB_DEV_CONN_STR" : "<AZURE-IOTHUB-CONNECTION-STRING-FOR-IMP-WITH-DEV_1_ID>", 
+            "DEV_2_IOTHUB_DEV_CONN_STR" : "<AZURE-IOTHUB-CONNECTION-STRING-FOR-IMP-WITH-DEV_2_ID>", 
+            "DEV_3_IOTHUB_DEV_CONN_STR" : "<AZURE-IOTHUB-CONNECTION-STRING-FOR-IMP-WITH-DEV_2_ID>"
         }
     }
 ```

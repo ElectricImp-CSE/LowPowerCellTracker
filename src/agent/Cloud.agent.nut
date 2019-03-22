@@ -41,8 +41,8 @@ class Cloud {
     }
 
     function send(data) {
-        // TODO: Format report data
-        local msg = AzureIoTHub.Message(data);
+        // TODO: Format report data 
+        local msg = AzureIoTHub.Message(http.jsonencode(data));
         client.sendMessage(msg, _onMsgSent.bindenv(this));
     }
 

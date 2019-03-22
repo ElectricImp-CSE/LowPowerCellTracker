@@ -32,6 +32,7 @@
 @include __PATH__ + "/../shared/Logger.shared.nut"
 @include __PATH__ + "/../shared/Constants.shared.nut"
 @include __PATH__ + "/Location.agent.nut"
+@include __PATH__ + "/Cloud.agent.nut"
 
 
 // Main Application
@@ -81,7 +82,7 @@ class MainController {
             //         "time"        : "2019-03-01T19:10:32Z"   // time from GPS message
             //     }, 
             //     "ts"               : 1551467430,             // Always included, timestamp when report sent
-            //     "secSinceBoot"     : 35126,                  // Always included
+            //     "secSinceBoot"     : 55.665001,                  // Always included
             //     "movement"         : true,                   // Only included if movement event occured
             //     "containerUpright" : true,                   // Only included if Accel reading successful
             //     "temperature"      : 26.557394,              // Only included if temp/humid reading successful

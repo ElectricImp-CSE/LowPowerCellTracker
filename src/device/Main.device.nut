@@ -64,9 +64,9 @@
 // overwrites the currently stored checking timestamp, so changes take will take 
 // effect immediately.
 // Wake every x seconds to check if report should be sent 
-const CHECK_IN_TIME_SEC  = 86400; // 60s * 60m * 24h 
+const CHECK_IN_TIME_SEC  = 60; // (86400) 60s * 60m * 24h 
 // Wake every x seconds to send a report, regaurdless of check results
-const REPORT_TIME_SEC    = 604800; // 60s * 60m * 24h * 7d
+const REPORT_TIME_SEC    = 120; // (604800) 60s * 60m * 24h * 7d 
 
 // Force in Gs that will trigger movement interrupt
 const MOVEMENT_THRESHOLD = 0.05;
@@ -127,8 +127,8 @@ class MainController {
         persist = Persist();
         // NOTE: If you update CHECK_IN_TIME_SEC uncomment the 2 lines below to update the 
         // next wake time.
-        // local now = time();
-        // persist.setWakeTime(now + CHECK_IN_TIME_SEC);
+        local now = time();
+        persist.setWakeTime(now + CHECK_IN_TIME_SEC);
 
         // Initialize Low Power Manager Library - this registers callbacks for each of the
         // different wake reasons (ie, onTimer, onInterrupt, defaultOnWake, etc);
@@ -509,9 +509,9 @@ class MainController {
         ::debug("Going to sleep...");
 
         // While in development, may want to use wakeup to give time for uart logs to complete 
-        imp.wakeup(2, function() {
+        // imp.wakeup(2, function() {
             (sleep != null) ? sleep() : lpm.sleepFor(getSleepTimer());
-        }.bindenv(this))
+        // }.bindenv(this))
     }
 
     // Helpers
