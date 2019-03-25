@@ -36,11 +36,16 @@ class Cloud {
         // Stores this devices connection string in class variable
         _getDeviceConnString();
 
-        client = AzureIoTHub.Client(devConnStr, _onConnected.bindenv(this), _onDisconnected.bindenv(this));
-        client.connect();
+        if (devConnStr != null) { 
+            client = AzureIoTHub.Client(devConnStr, _onConnected.bindenv(this), _onDisconnected.bindenv(this));
+            client.connect();
+        } else {
+            ::error("No Azure IoT Hub credentials for this device. Connection to Azure IoT Hub NOT established");
+        }
     }
 
     function send(data) {
+        if (devConnStr == null) return;
         // TODO: 
         // Format report data if more that json encoding the report table is needed
         // Check cloud connection state, and resend if not connected 
