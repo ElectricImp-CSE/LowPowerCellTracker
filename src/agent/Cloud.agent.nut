@@ -85,14 +85,17 @@ class Cloud {
         // Use hardcoded values stored in imp.config file to get 
         // IoTHub Device Connection string for this device
         switch(imp.configparams.deviceid) {
-            case "@{DEV_1_ID}":
+            case "@{DEV_1_ID}": // Betsy's test device
                 devConnStr = "@{DEV_1_IOTHUB_DEV_CONN_STR}";
                 break;
-            case "@{DEV_2_ID}": 
+            case "@{DEV_2_ID}": // Custom IBC board
                 devConnStr = "@{DEV_2_IOTHUB_DEV_CONN_STR}";
                 break;
-            case "@{DEV_3_ID}":
+            case "@{DEV_3_ID}": // Breakout board (1)
                 devConnStr = "@{DEV_3_IOTHUB_DEV_CONN_STR}";
+                break;
+            case "@{DEV_4_ID}": // Breakout board (2)
+                devConnStr = "@{DEV_4_IOTHUB_DEV_CONN_STR}";
                 break;
         }
     }
