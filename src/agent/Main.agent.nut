@@ -27,6 +27,7 @@
 // Libraries 
 #require "MessageManager.lib.nut:2.4.0"
 #require "UBloxAssistNow.agent.lib.nut:1.0.0"
+#require "AzureIoTHub.agent.lib.nut:5.0.0"
 
 // Supporting files
 @include __PATH__ + "/../shared/Logger.shared.nut"
@@ -61,7 +62,7 @@ class MainController {
         mm.on(MM_ASSIST, getAssist.bindenv(this));
 
         // Initialize Cloud Service (Azure IoT Hub)
-        // cloud = Cloud();
+        cloud = Cloud();
     }
 
     function processReport(msg, reply) {
@@ -90,7 +91,7 @@ class MainController {
             // }
 
         // TODO: Send device data to cloud service
-        // cloud.send(report);
+        cloud.send(report);
     }
 
     function getAssist(msg, reply) {

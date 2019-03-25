@@ -36,12 +36,14 @@ class Cloud {
         // Stores this devices connection string in class variable
         _getDeviceConnString();
 
-        client = (devConnStr, _onConnected.bindenv(this), _onDisconnected.bindenv(this));
+        client = AzureIoTHub.Client(devConnStr, _onConnected.bindenv(this), _onDisconnected.bindenv(this));
         client.connect();
     }
 
     function send(data) {
-        // TODO: Format report data 
+        // TODO: 
+        // Format report data if more that json encoding the report table is needed
+        // Check cloud connection state, and resend if not connected 
         local msg = AzureIoTHub.Message(http.jsonencode(data));
         client.sendMessage(msg, _onMsgSent.bindenv(this));
     }

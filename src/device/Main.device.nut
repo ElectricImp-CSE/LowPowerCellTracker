@@ -355,7 +355,7 @@ class MainController {
         local reportTime = persist.getReportTime();
         // If report time has expired set next report time based on that timestamp, otherwise set the next report time 
         // using the current time.
-        reportTime = (reportTime == null || now < reportTime) ? now + REPORT_TIME_SEC : reportTime + REPORT_TIME_SEC;
+        reportTime = (reportTime == null || (reportTime + REPORT_TIME_SEC) < now) ? now + REPORT_TIME_SEC : reportTime + REPORT_TIME_SEC;
         persist.setReportTime(reportTime);
 
         ::debug("Next report time " + reportTime + ", in " + (reportTime - now) + "s");
