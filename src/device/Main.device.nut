@@ -306,9 +306,9 @@ class MainController {
             local mostAccFix = loc.gpsFix;
             // If GPS got a fix of any sort
             if (mostAccFix != null) {
-                // Log the fix data
+                // Log the fix summery
                 ::debug(format("fixType: %s, numSats: %s, accuracy: %s", mostAccFix.fixType.tostring(), mostAccFix.numSats.tostring(), mostAccFix.accuracy.tostring()));
-                // Add to report if fix was withing the reporting accuracy
+                // Add to report if fix was within the reporting accuracy
                 if (mostAccFix.accuracy <= LOCATION_REPORT_ACCURACY) report.fix <- mostAccFix;
             } 
         }

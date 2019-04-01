@@ -79,8 +79,8 @@ class Location {
         ubx.enableUbxMsg(UBX_MSG_PARSER_CLASS_MSG_ID.NAV_PVT, LOCATION_CHECK_SEC, _onNavMsg.bindenv(this));
     }
 
-    function getLocation(target, onAccurateFix) {
-        accTarget = target;
+    function getLocation(accuracy, onAccurateFix) {
+        accTarget = accuracy;
         onAccFix = onAccurateFix;
         
         if (gpsFix != null) {
