@@ -27,9 +27,9 @@
 // variables. These variables are used throughout 
 // the code, so vairable names should NOT be changed.
 
-// NOTE: The hardware for this tracker is NOT compatible with the impC001 breakout board. 
+// NOTE: The hardware for this tracker is NOT compatible with the impC001 ibc-tracker board. 
 
-// impC001-ibc-tracker rev1.0    
+// impC001-breakout-tracker-with-GPS rev5    
 LED_SPI         <- hardware.spiYJTHU;
 
 GPS_UART        <- hardware.uartNU;
