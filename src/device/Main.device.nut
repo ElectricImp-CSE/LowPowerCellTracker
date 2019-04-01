@@ -289,10 +289,10 @@ class MainController {
     function sendReport() {
         local report = {
             "secSinceBoot" : (hardware.millis() - bootTime) / 1000.0,
-            "ts"           : time()
+            "ts"           : time(), 
+            "movement"     : persist.getMoveDetected()
         }
-        // TODO: Decide if movement should always be included or only if true
-        if (persist.getMoveDetected()) report.movement <- true;
+
         if (battStatus != null) report.battStatus <- battStatus;
         if (thReading != null) {
             report.temperature <- thReading.temperature;
