@@ -66,12 +66,12 @@
 // Wake every x seconds to check if report should be sent 
 const CHECK_IN_TIME_SEC  = 60; // (86400) 60s * 60m * 24h 
 // Wake every x seconds to send a report, regaurdless of check results
-const REPORT_TIME_SEC    = 120; // (604800) 60s * 60m * 24h * 7d 
+const REPORT_TIME_SEC    = 180; // (604800) 60s * 60m * 24h * 7d 
 
 // Force in Gs that will trigger movement interrupt
 const MOVEMENT_THRESHOLD = 0.05;
 // Accuracy of GPS fix in meters
-const LOCATION_ACCURACY  = 5;
+const LOCATION_ACCURACY  = 10;
 // Constant used to validate imp's timestamp 
 const VALID_TS_YEAR      = 2019;
 // Maximum time to stay awake
@@ -125,9 +125,6 @@ class MainController {
 
         // Initialize SPI storage class
         persist = Persist();
-        // NOTE: overwriteStoredConnectSettings method only needed if CHECK_IN_TIME_SEC 
-        // and/or REPORT_TIME_SEC have been changed.
-        overwriteStoredConnectSettings();
 
         // Initialize Low Power Manager Library - this registers callbacks for each of the
         // different wake reasons (ie, onTimer, onInterrupt, defaultOnWake, etc);
@@ -266,8 +263,10 @@ class MainController {
 
         // Enable movement monitor
         move.enable(MOVEMENT_THRESHOLD, onMovement.bindenv(this));
-        // Set report time 
-        updateReportingTime();
+
+        // NOTE: overwriteStoredConnectSettings method only needed if CHECK_IN_TIME_SEC 
+        // and/or REPORT_TIME_SEC have been changed.
+        overwriteStoredConnectSettings();
 
         // Send report if connected or alert condition noted, then sleep 
         // Set a limit on how long we are connected
@@ -352,11 +351,16 @@ class MainController {
         
         // Get stored report time
         local reportTime = persist.getReportTime();
-        // If report time has expired set next report time based on that timestamp, otherwise set the next report time 
-        // using the current time.
-        reportTime = (reportTime == null || (reportTime + REPORT_TIME_SEC) < now) ? now + REPORT_TIME_SEC : reportTime + REPORT_TIME_SEC;
-        persist.setReportTime(reportTime);
+ 
+        // If we don't have a report time or if stored report time is stale
+        // set next reporting time using the current time.
+        if (reportTime == null || (reportTime + REPORT_TIME_SEC) < now) reportTime = now + REPORT_TIME_SEC;
 
+        // If report time has expired set next report time based on previous reporting interval 
+        if (reportTime <= now) reportTime = reportTime + REPORT_TIME_SEC;
+
+        // Update report time if it has changed
+        persist.setReportTime(reportTime);
         ::debug("Next report time " + reportTime + ", in " + (reportTime - now) + "s");
     }
 
@@ -520,7 +524,7 @@ class MainController {
     function overwriteStoredConnectSettings() {
         local now = time();
         persist.setWakeTime(now + CHECK_IN_TIME_SEC);
-        persist.setReportTime(now + CHECK_IN_TIME_SEC);
+        persist.setReportTime(now + REPORT_TIME_SEC);
     }
 
     // Returns boolean, checks for event(s) or if report time has passed
