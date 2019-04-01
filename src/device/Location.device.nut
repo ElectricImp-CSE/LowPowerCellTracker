@@ -79,8 +79,8 @@ class Location {
         ubx.enableUbxMsg(UBX_MSG_PARSER_CLASS_MSG_ID.NAV_PVT, LOCATION_CHECK_SEC, _onNavMsg.bindenv(this));
     }
 
-    function getLocation(accuracy, onAccurateFix) {
-        accTarget = accuracy;
+    function getLocation(target, onAccurateFix) {
+        accTarget = target;
         onAccFix = onAccurateFix;
         
         if (gpsFix != null) {
@@ -186,15 +186,19 @@ class Location {
                 ::debug(format("first fix time %s, satellites %d, fix type %d, accuracy %s", timeStr, payload.numSV, fixType, accuracy.tostring()));
             }
 
-            // Add/Update fix report values
-            gpsFix.secToFix <- fixTime;
-            gpsFix.fixType <- fixType;
-            gpsFix.numSats <- payload.numSV;
-            gpsFix.lon <- UbxMsgParser.toDecimalDegreeString(payload.lon);
-            gpsFix.lat <- UbxMsgParser.toDecimalDegreeString(payload.lat);
-            gpsFix.time <- timeStr;
-            gpsFix.accuracy <- accuracy;
+            // Update GPS fix info if we have better accuracy than the last reported value
+            if (!("accuracy" in gpsFix) || accuracy < gpsFix.accuracy) {
+                // Add/Update fix report values
+                gpsFix.secToFix <- fixTime;
+                gpsFix.fixType <- fixType;
+                gpsFix.numSats <- payload.numSV;
+                gpsFix.lon <- UbxMsgParser.toDecimalDegreeString(payload.lon);
+                gpsFix.lat <- UbxMsgParser.toDecimalDegreeString(payload.lat);
+                gpsFix.time <- timeStr;
+                gpsFix.accuracy <- accuracy;
+            }
 
+            // Check if we have reached our target accuracy
             if (onAccFix != null) _checkAccuracy();
         } else {
             // This will trigger on every message, so don't log message unless you are debugging

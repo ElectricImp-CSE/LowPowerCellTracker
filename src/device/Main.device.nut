@@ -70,8 +70,10 @@ const REPORT_TIME_SEC    = 180; // (for production update to 604800) 60s * 60m *
 
 // Force in Gs that will trigger movement interrupt
 const MOVEMENT_THRESHOLD = 0.05;
-// Accuracy of GPS fix in meters
-const LOCATION_ACCURACY  = 10;
+// Accuracy of GPS fix in meters, cut power to GPS & report immediately 
+const LOCATION_TARGET_ACCURACY  = 5;
+// Accuracy of GPS fix in meters, add to report if fix is btwn this and ideal accuracy
+const LOCATION_REPORT_ACCURACY  = 10;
 // Constant used to validate imp's timestamp 
 const VALID_TS_YEAR      = 2019;
 // Maximum time to stay awake
@@ -298,7 +300,18 @@ class MainController {
             report.humidity <- thReading.humidity;
         }
         if (isUpright != null) report.containerUpright <- isUpright;
-        if (fix != null) report.fix <- fix;
+        if (fix != null) {
+            report.fix <- fix;
+        } else {
+            local mostAccFix = loc.gpsFix;
+            // If GPS got a fix of any sort
+            if (mostAccFix != null) {
+                // Log the fix data
+                ::debug(format("fixType: %s, numSats: %s, accuracy: %s", mostAccFix.fixType.tostring(), mostAccFix.numSats.tostring(), mostAccFix.accuracy.tostring()));
+                // Add to report if fix was withing the reporting accuracy
+                if (mostAccFix.accuracy <= LOCATION_REPORT_ACCURACY) report.fix <- mostAccFix;
+            } 
+        }
 
         // Toggle send flag
         readyToSend = false;
@@ -316,7 +329,7 @@ class MainController {
     function getLocation() {
         PWR_GATE_EN.write(1);
         if (loc == null) loc = Location(bootTime);
-        loc.getLocation(LOCATION_ACCURACY, onAccFix.bindenv(this));
+        loc.getLocation(LOCATION_TARGET_ACCURACY, onAccFix.bindenv(this));
     }
 
     // Initializes Battery monitor and gets battery status
@@ -367,21 +380,8 @@ class MainController {
     function setReportTimer() {
         // Ensure only one timer is set
         cancelReportTimer();
-        // Start a timer to send report if no GPS fix is found
-        reportTimer = imp.wakeup(GPS_TIMEOUT, function() {
-            ::debug("GPS failed to get an accurate fix. Disabling GPS power."); 
-            PWR_GATE_EN.write(0);    
-
-            // If GPS got a fix, log the latest fix data
-            local fix = loc.gpsFix;
-            if (fix != null) {
-                ::debug(format("fixType: %s, numSats: %s, accuracy: %s", fix.fixType.tostring(), fix.numSats.tostring(), fix.accuracy.tostring()));
-            } 
-
-            // Send report if connection handler has already run
-            // and report has not been sent
-            if (readyToSend) sendReport();   
-        }.bindenv(this)) 
+        // Start a timer to send report if accurate GPS fix is not found
+        reportTimer = imp.wakeup(GPS_TIMEOUT, onReportTimerExpired.bindenv(this)) 
     }
 
     function cancelReportTimer() {
@@ -420,6 +420,17 @@ class MainController {
                 ::error(err.error);
             }
         }
+    }
+
+    // If report timer expires before accurate GPS fix is not found, 
+    // disable GPS power and send report if connected
+    function onReportTimerExpired() {
+        ::debug("GPS failed to get an accurate fix. Disabling GPS power."); 
+        PWR_GATE_EN.write(0);    
+
+        // Send report if connection handler has already run
+        // and report has not been sent
+        if (readyToSend) sendReport();   
     }
 
     // Stores fix data, and powers down the GPS
