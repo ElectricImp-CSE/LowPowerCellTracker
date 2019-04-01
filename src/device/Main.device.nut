@@ -125,10 +125,9 @@ class MainController {
 
         // Initialize SPI storage class
         persist = Persist();
-        // NOTE: If you update CHECK_IN_TIME_SEC uncomment the 2 lines below to update the 
-        // next wake time.
-        local now = time();
-        persist.setWakeTime(now + CHECK_IN_TIME_SEC);
+        // NOTE: overwriteStoredConnectSettings method only needed if CHECK_IN_TIME_SEC 
+        // and/or REPORT_TIME_SEC have been changed.
+        overwriteStoredConnectSettings();
 
         // Initialize Low Power Manager Library - this registers callbacks for each of the
         // different wake reasons (ie, onTimer, onInterrupt, defaultOnWake, etc);
@@ -516,6 +515,13 @@ class MainController {
 
     // Helpers
     // -------------------------------------------------------------
+
+    // Overwrites currently stored wake and report times based on current timestamp
+    function overwriteStoredConnectSettings() {
+        local now = time();
+        persist.setWakeTime(now + CHECK_IN_TIME_SEC);
+        persist.setReportTime(now + CHECK_IN_TIME_SEC);
+    }
 
     // Returns boolean, checks for event(s) or if report time has passed
     function shouldConnect() {
