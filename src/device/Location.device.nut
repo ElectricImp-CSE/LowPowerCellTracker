@@ -187,6 +187,8 @@ class Location {
             }
 
             // Update GPS fix info if we have better accuracy than the last reported value
+            // TODO: GPS takes quite a lot of power, to optimize for better battery consumption
+            // use number of sattelites and accuracy to determine if fix is going to get better.
             if (!("accuracy" in gpsFix) || accuracy < gpsFix.accuracy) {
                 // Add/Update fix report values
                 gpsFix.secToFix <- fixTime;

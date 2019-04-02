@@ -267,7 +267,7 @@ class MainController {
         move.enable(MOVEMENT_THRESHOLD, onMovement.bindenv(this));
 
         // NOTE: overwriteStoredConnectSettings method only needed if CHECK_IN_TIME_SEC 
-        // and/or REPORT_TIME_SEC have been changed.
+        // and/or REPORT_TIME_SEC have been changed
         overwriteStoredConnectSettings();
 
         // Send report if connected or alert condition noted, then sleep 
@@ -358,19 +358,15 @@ class MainController {
         move.isUpright(onPositionIsUpright.bindenv(this));
     }
 
-    // Updates report time
+    // Updates report time, after having just sent a report
     function updateReportingTime() {
+        // We just sent a report, calculate next report time based on the time we booted
         local now = time();
-        
-        // Get stored report time
-        local reportTime = persist.getReportTime();
- 
-        // If we don't have a report time or if stored report time is stale
-        // set next reporting time using the current time.
-        if (reportTime == null || (reportTime + REPORT_TIME_SEC) < now) reportTime = now + REPORT_TIME_SEC;
+        local stored = persist.getReportTime();
 
-        // If report time has expired set next report time based on previous reporting interval 
-        if (reportTime <= now) reportTime = reportTime + REPORT_TIME_SEC;
+        // If report timer expired set based off of stored report ts, otherwise 
+        // set based on current time offset with by the boot ts
+        local reportTime = (stored != null && stored <= now) ? stored + REPORT_TIME_SEC : now + REPORT_TIME_SEC - (bootTime / 1000);
 
         // Update report time if it has changed
         persist.setReportTime(reportTime);
@@ -531,11 +527,11 @@ class MainController {
     // Helpers
     // -------------------------------------------------------------
 
-    // Overwrites currently stored wake and report times based on current timestamp
+    // Overwrites currently stored wake and report times
     function overwriteStoredConnectSettings() {
         local now = time();
         persist.setWakeTime(now + CHECK_IN_TIME_SEC);
-        persist.setReportTime(now + REPORT_TIME_SEC);
+        persist.setReportTime(now);
     }
 
     // Returns boolean, checks for event(s) or if report time has passed
