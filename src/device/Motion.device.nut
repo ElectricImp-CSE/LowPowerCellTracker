@@ -150,11 +150,18 @@ class Motion {
         return (actual <= max && actual >= min);
     }
 
-    // Helper returns false if accel is enabled, otherwise returns the 
+    // Helper returns bool if accel is enabled
     function _isAccelEnabled() {
         // bits 0-2 xyz enabled, 3 low-power enabled, 4-7 data rate
         local val = accel._getReg(LIS3DH_CTRL_REG1);
         return (val & 0x07) ? true : false;
+    }
+
+    // Helper returns bool if accel inertial interrupt is enabled
+    function _isAccelIntEnabled() {
+        // bit 7 inertial interrupt is enabled,
+        local val = accel._getReg(LIS3DH_CTRL_REG3);
+        return (val & 0x40) ? true : false;
     }
 
 }

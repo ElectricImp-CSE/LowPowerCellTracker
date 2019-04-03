@@ -64,9 +64,9 @@
 // overwrites the currently stored checking timestamp, so changes take will take 
 // effect immediately.
 // Wake every x seconds to check if report should be sent 
-const CHECK_IN_TIME_SEC  = 60; // (for production update to 86400) 60s * 60m * 24h 
+const CHECK_IN_TIME_SEC  = 900; // (for production update to 86400) 60s * 60m * 24h 
 // Wake every x seconds to send a report, regaurdless of check results
-const REPORT_TIME_SEC    = 180; // (for production update to 604800) 60s * 60m * 24h * 7d 
+const REPORT_TIME_SEC    = 3600; // (for production update to 604800) 60s * 60m * 24h * 7d 
 
 // Force in Gs that will trigger movement interrupt
 const MOVEMENT_THRESHOLD = 0.05;
@@ -316,6 +316,9 @@ class MainController {
         // Toggle send flag
         readyToSend = false;
 
+        // DEBUGGING MOVEMENT ISSUE
+        ::debug("Accel is enabled: " + move._isAccelEnabled() + ", accel int enabled: " + move._isAccelIntEnabled() + ", movement flag: " + persist.getMoveDetected());
+
         // Send to agent
         ::debug("Sending device status report to agent");
         local mmHandlers = {
@@ -362,11 +365,10 @@ class MainController {
     function updateReportingTime() {
         // We just sent a report, calculate next report time based on the time we booted
         local now = time();
-        local stored = persist.getReportTime();
 
         // If report timer expired set based off of stored report ts, otherwise 
         // set based on current time offset with by the boot ts
-        local reportTime = (stored != null && stored <= now) ? stored + REPORT_TIME_SEC : now + REPORT_TIME_SEC - (bootTime / 1000);
+        local reportTime = now + REPORT_TIME_SEC - (bootTime / 1000);
 
         // Update report time if it has changed
         persist.setReportTime(reportTime);
@@ -477,7 +479,7 @@ class MainController {
         
         // Our timer has expired, update it to next interval
         if (wakeTime == null || now >= wakeTime) {
-            wakeTime = (wakeTime == null || wakeTime < 0) ? now + CHECK_IN_TIME_SEC : wakeTime + CHECK_IN_TIME_SEC;
+            wakeTime = now + CHECK_IN_TIME_SEC - (bootTime / 1000);
             persist.setWakeTime(wakeTime);
         }
 
@@ -518,10 +520,17 @@ class MainController {
         ::debug("Time since code started: " + (now - bootTime) + "ms");
         ::debug("Going to sleep...");
 
-        // While in development, may want to use wakeup to give time for uart logs to complete 
-        // imp.wakeup(2, function() {
-            (sleep != null) ? sleep() : lpm.sleepFor(getSleepTimer());
-        // }.bindenv(this))
+        // DEBUGGING MOVEMENT ISSUE
+        ::debug("Accel is enabled: " + move._isAccelEnabled() + ", accel int enabled: " + move._isAccelIntEnabled() + ", movement flag: " + persist.getMoveDetected());
+
+        local sleepTime;
+        if (sleep == null) {
+            sleepTime = getSleepTimer();
+            ::debug("Setting sleep timer: " + sleepTime + "s");
+        }
+
+        // Put device to sleep 
+        (sleep != null) ? sleep() : lpm.sleepFor(sleepTime);
     }
 
     // Helpers
@@ -530,7 +539,7 @@ class MainController {
     // Overwrites currently stored wake and report times
     function overwriteStoredConnectSettings() {
         local now = time();
-        persist.setWakeTime(now + CHECK_IN_TIME_SEC);
+        persist.setWakeTime(now);
         persist.setReportTime(now);
     }
 
