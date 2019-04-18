@@ -90,6 +90,10 @@ For development purposes uart logging is recommended to see offline device logs.
 
 Settings are all stored as constants. Modify to customize the application.
 
+## TODO
+
+impC-ibc-tracker has external SPI Flash. This will drain power until the SPI bus is disabled disabled. On boot use imp API SPI methods to disable. 
+
 ## Measurements
 
 No hardware is available to test on, so no measurements have been taken for impC-ibc-tracker. 
