@@ -97,7 +97,10 @@ class MainController {
         // code starts running.
         // TODO: In production update CM_BLINK to NEVER to conserve battery power
         // TODO: Look into setting connection timeout (currently using default of 60s)
-        cm = ConnectionManager({ "blinkupBehavior": CM_BLINK_ALWAYS });
+        cm = ConnectionManager({ 
+	    "blinkupBehavior": CM_BLINK_ALWAYS,
+	    "retryOnTimeout" : false
+	});
         imp.setsendbuffersize(8096);
 
         // Initialize Logger 
