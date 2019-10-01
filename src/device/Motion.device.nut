@@ -47,7 +47,7 @@ class Motion {
     }
 
     function enable(threshold, onInterrupt = null) {
-        ::debug("Enabling motion detection");
+        ::debug("[Motion] Enabling motion detection");
 
         configIntWake(onInterrupt);
         
@@ -75,7 +75,7 @@ class Motion {
 
     // This method does NOT clear the latched interrupt pin. It disables the accelerometer and reconfigures wake pin.  
     function disable() {
-        ::debug("Disabling motion detection");
+        ::debug("[Motion] Disabling motion detection");
 
         // Disables accelerometer 
         accel.setDataRate(0);
@@ -95,7 +95,7 @@ class Motion {
     // Returns boolean if interrupt was detected. 
     // Note: Calling this method clears the interrupt.
     function detected() {
-        ::debug("Checking and clearing interrupt");
+        ::debug("[Motion] Checking and clearing interrupt");
         // Get interrupt table. Note this clears the interrupt data 
         local res = accel.getInterruptTable();
         // Return boolean - if motion event has occurred
@@ -104,6 +104,9 @@ class Motion {
 
     // Passes boolean (if container is upright) to callback
     function isUpright(cb) {
+        ::log("[Motion] CB Here:" + cb);
+        ::log("[Motion] Accel Enabled: " + _isAccelEnabled());
+
         // Get accel reading
         if (_isAccelEnabled()) {
             // Take reading
@@ -129,15 +132,24 @@ class Motion {
 
     // Helper that runs check on accelerometer reading data
     function _checkAccelReading(reading, cb) {
+        ::log("[Motion] log check AccelReading..");
+
         if ("error" in reading) {
             // Log error, don't trigger callback
-            ::error("Error determining position. Accel reading error: " + reading.error);
+            ::error("[Motion] Error determining position. Accel reading error: " + reading.error);
         } else {
-            ::debug(format("Accel reading x: %f, y: %f, z: %f", reading.x, reading.y, reading.z));
+            ::debug(format("[Motion] Accel reading x: %f, y: %f, z: %f", reading.x, reading.y, reading.z));
             // Check reading against expected to determine if container is upright 
+            ::log("[Motion] x:" + reading.x);
+            ::log("[Motion] y:" + reading.y);
+            ::log("[Motion] z:" +r eading.z);
+
+            // cb(_inRange(reading.x, ACCEL_UPRIGHT_X) && 
+            //    _inRange(reading.y, ACCEL_UPRIGHT_Y) &&
+            //    _inRange(reading.z, ACCEL_UPRIGHT_Z));
+
             cb(_inRange(reading.x, ACCEL_UPRIGHT_X) && 
-               _inRange(reading.y, ACCEL_UPRIGHT_Y) &&
-               _inRange(reading.z, ACCEL_UPRIGHT_Z));
+               _inRange(reading.y, ACCEL_UPRIGHT_Y) );
         }
     }
 
@@ -146,7 +158,7 @@ class Motion {
         local max = expected + ACCEL_UPRIGHT_RANGE;
         local min = expected - ACCEL_UPRIGHT_RANGE;
         local inRange = (actual <= max && actual >= min);
-        ::debug(format("Value: %f, Expected: %f, Min: %f, Max: %f, inRange: ", actual, expected, min, max) + inRange);
+        ::debug(format("[Motion] Value: %f, Expected: %f, Min: %f, Max: %f, inRange: ", actual, expected, min, max) + inRange);
         return (actual <= max && actual >= min);
     }
 

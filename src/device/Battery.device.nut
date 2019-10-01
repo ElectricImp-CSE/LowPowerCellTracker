@@ -52,11 +52,11 @@ class Battery {
     constructor(configureI2C) {
         if (configureI2C) SENSOR_I2C.configure(CLOCK_SPEED_400_KHZ);
 
-        charger = BQ25895M(SENSOR_I2C, BATT_CHGR_ADDR);
+        charger = BQ25895(SENSOR_I2C, BATT_CHGR_ADDR);
         fg = MAX17055(SENSOR_I2C, FUEL_GAUGE_ADDR);
 
         // Charger default to: 4.352V and 2048mA
-        charger.enable(BATT_CHARGE_VOLTAGE, BATT_CURR_LIMIT);
+        charger.enable({"voltage": BATT_CHARGE_VOLTAGE, "current": BATT_CURR_LIMIT});
 
         local fgSettings = {
             "desCap"       : FG_DES_CAP,
@@ -71,7 +71,7 @@ class Battery {
         // so call this here so ready flag is always set.
         fg.init(fgSettings, function(err) {
             if (err != null) {
-                ::error("Error initializing fuel gauge: " + err);
+                ::error("[Battery] Error initializing fuel gauge: " + err);
             } else {
                 fgReady = true;
             }

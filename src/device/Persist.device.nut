@@ -51,6 +51,7 @@ class Persist {
     function getWakeTime() {
         // If we have a local copy, return the local copy
         if (wakeTime != null) return wakeTime;
+        ::log("[Persist] MP Log getWakeTime local" + wakeTime);
 
         // Try to get wake time from SPI, store a local copy
         if (_sffs.fileExists(PERSIST_FILE_NAMES.WAKE_TIME)) {
@@ -59,6 +60,7 @@ class Persist {
             file.close();
             wt.seek(0, 'b');
             wakeTime = wt.readn('i');
+            ::log("[Persist] MP Log getWakeTime SPI" + wakeTime);
         }
 
         // Return wake time or null if it is not found
@@ -68,6 +70,7 @@ class Persist {
     function getReportTime() {
         // If we have a local copy, return the local copy
         if (reportTime != null) return reportTime;
+        ::log("[Persist] MP Log getReportTime local" + reportTime);
 
         // Try to get report time from SPI, store a local copy
         if (_sffs.fileExists(PERSIST_FILE_NAMES.REPORT_TIME)) {
@@ -76,6 +79,7 @@ class Persist {
             file.close();
             rt.seek(0, 'b');
             reportTime = rt.readn('i');
+            ::log("[Persist] MP Log getReportTime SPI" + reportTime);
         }
         
         // Return report time or null if it is not found
@@ -115,7 +119,7 @@ class Persist {
         local file = _sffs.open(PERSIST_FILE_NAMES.MOVE_DETECTED, "w");
         file.write(_serializeMove(moveDetected));
         file.close();
-        ::debug("Movement flag stored: " + moveDetected);
+        ::debug("[Persist] Movement flag stored: " + moveDetected);
     }
 
     function setWakeTime(newTime) {
@@ -132,7 +136,8 @@ class Persist {
         local file = _sffs.open(PERSIST_FILE_NAMES.WAKE_TIME, "w");
         file.write(_serializeTimestamp(wakeTime));
         file.close();
-        ::debug("Wake time stored: " + wakeTime);
+        ::debug("[Persist] Wake time stored: " + wakeTime);
+        ::log("[Persist] MP Log setWakeTime " + wakeTime);
     }
 
     function setReportTime(newTime) {
@@ -149,7 +154,8 @@ class Persist {
         local file = _sffs.open(PERSIST_FILE_NAMES.REPORT_TIME, "w");
         file.write(_serializeTimestamp(reportTime));
         file.close();
-        ::debug("Report time stored: " + reportTime);
+        ::debug("[Persist] Report time stored: " + reportTime);
+        ::log("[Persist] MP Log setReportTime " + reportTime);
     }
 
     function _serializeTimestamp(ts) {

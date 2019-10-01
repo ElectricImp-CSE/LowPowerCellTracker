@@ -44,8 +44,9 @@ enum LOG_LEVEL {
 // value "level"
 Logger <- {
 
-    "level"   : LOG_LEVEL.DEBUG,
-    "isAgent" : null, 
+    "level"       : LOG_LEVEL.DEBUG,
+    "isAgent"     : null, 
+    "offlineLogs" : [],
 
     "init" : function(_level, _cm = null) {
         // Set log level
@@ -75,6 +76,29 @@ Logger <- {
     "error" : function(msg) {
         if (level <= LOG_LEVEL.ERROR) {
             _log("[ERROR]: " + msg.tostring());
+        }
+    },
+
+    "storeOfflineLog" : function(cnow, d, reason, cfunction, text, t) {
+        local msg = {
+            "cnow"      : cnow,
+            "date"      : d,
+            "reason"    : reason,
+            "cfunction" : cfunction,
+            "text"      : text,
+            "time"      : t
+        }
+        offlineLogs.push(msg);
+    },
+
+    "dumpOfflineLogs" : function() {
+        foreach (log in offlineLogs) {
+            _log("logdatetime: " + log.cnow);
+            _log("formatted date: " + log.date);
+            _log("reason: " + log.reason);
+            _log("function: " + log.cfunction)
+            _log("text: " + log.text);
+            _log("which time: " + log.time);
         }
     },
 

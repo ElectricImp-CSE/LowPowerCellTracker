@@ -54,7 +54,7 @@ class Location {
     constructor(_bootTime) {
         bootTime = _bootTime;
 
-        ::debug("Configuring u-blox...");
+        ::debug("[Location] Configuring u-blox...");
         ubx = UBloxM8N(GPS_UART);
         local ubxSettings = {
             "baudRate"     : GPS_UART_BAUDRATE,
@@ -74,7 +74,7 @@ class Location {
         ubx.configure(ubxSettings);
         assist = UBloxAssistNow(ubx);
         
-        ::debug("Enable navigation messages...");
+        ::debug("[Location] Enable navigation messages...");
         // Enable Position Velocity Time Solution messages
         ubx.enableUbxMsg(UBX_MSG_PARSER_CLASS_MSG_ID.NAV_PVT, LOCATION_CHECK_SEC, _onNavMsg.bindenv(this));
     }
@@ -97,9 +97,9 @@ class Location {
 
     function _onNavMsg(payload) {
         // This will trigger on every msg, so don't log message unless you need to debug something
-        // ::debug("In NAV_PVT msg handler...");
+        // ::debug("[Location] In NAV_PVT msg handler...");
         // ::debug("-----------------------------------------");
-        // ::debug("Msg len: " + payload.len());
+        // ::debug("[Location] Msg len: " + payload.len());
 
         local parsed = UbxMsgParser[UBX_MSG_PARSER_CLASS_MSG_ID.NAV_PVT](payload);
         if (parsed.error == null) {
@@ -123,45 +123,45 @@ class Location {
     }
 
     function _onUbxMsg(payload, classId) {
-        ::debug("In Location ubx msg handler...");
+        ::debug("[Location] In Location ubx msg handler...");
         ::debug("-----------------------------------------");
 
         // Log message info
-        ::debug(format("Msg Class ID: 0x%04X", classId));
-        ::debug("Msg len: " + payload.len());
+        ::debug(format("[Location] Msg Class ID: 0x%04X", classId));
+        ::debug("[Location] Msg len: " + payload.len());
 
         ::debug("-----------------------------------------");
     }
 
     function _onNmeaMsg(sentence) {
-        ::debug("In Location NMEA msg handler...");
+        ::debug("[Location] In Location NMEA msg handler...");
         // Log NMEA message
         ::debug(sentence);
     }
 
     function _onACK(payload) {
-        ::debug("In Location ACK_ACK msg handler...");
+        ::debug("[Location] In Location ACK_ACK msg handler...");
         ::debug("-----------------------------------------");
 
         local parsed = UbxMsgParser[UBX_MSG_PARSER_CLASS_MSG_ID.ACK_ACK](payload);
         if (parsed.error != null) {
             ::error(parsed.error);
         } else {
-            ::debug(format("ACK-ed msgId: 0x%04X", parsed.ackMsgClassId));
+            ::debug(format("[Location] ACK-ed msgId: 0x%04X", parsed.ackMsgClassId));
         }
 
         ::debug("-----------------------------------------");
     }
 
     function _onNAK(payload) {
-        ::debug("In Location ACK_NAK msg handler...");
+        ::debug("[Location] In Location ACK_NAK msg handler...");
         ::debug("-----------------------------------------");
 
         local parsed = UbxMsgParser[UBX_MSG_PARSER_CLASS_MSG_ID.ACK_NAK](payload);
         if (parsed.error != null) {
             ::error(parsed.error);
         } else {
-            ::error(format("NAK-ed msgId: 0x%04X", parsed.nakMsgClassId));
+            ::error(format("[Location] NAK-ed msgId: 0x%04X", parsed.nakMsgClassId));
         }
 
         ::debug("-----------------------------------------");
@@ -183,7 +183,7 @@ class Location {
                 gpsFix = {
                     "secTo1stFix" : fixTime
                 };
-                ::debug(format("first fix time %s, satellites %d, fix type %d, accuracy %s", timeStr, payload.numSV, fixType, accuracy.tostring()));
+                ::debug(format("[Location] first fix time %s, satellites %d, fix type %d, accuracy %s", timeStr, payload.numSV, fixType, accuracy.tostring()));
             }
 
             // Update GPS fix info if we have better accuracy than the last reported value
@@ -204,7 +204,7 @@ class Location {
             if (onAccFix != null) _checkAccuracy();
         } else {
             // This will trigger on every message, so don't log message unless you are debugging
-            ::debug(format("no fix %d, satellites %d, date %s", fixType, payload.numSV, timeStr));
+            ::debug(format("[Location] no fix %d, satellites %d, date %s", fixType, payload.numSV, timeStr));
         }
     }
 

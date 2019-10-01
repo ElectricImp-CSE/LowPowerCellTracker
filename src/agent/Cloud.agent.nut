@@ -31,10 +31,12 @@ class Cloud {
 
     devConnStr = null;
     client     = null;
+    _deviceID  = null;
 
     constructor() {
         // Stores this devices connection string in class variable
         _getDeviceConnString();
+        _deviceID = imp.configparams.deviceid;
 
         if (devConnStr != null) { 
             client = AzureIoTHub.Client(devConnStr, _onConnected.bindenv(this), _onDisconnected.bindenv(this));
@@ -84,7 +86,7 @@ class Cloud {
     function _getDeviceConnString() {
         // Use hardcoded values stored in imp.config file to get 
         // IoTHub Device Connection string for this device
-        switch(imp.configparams.deviceid) {
+        switch(_deviceID) {
             case "@{DEV_1_ID}": // Betsy's test device
                 devConnStr = "@{DEV_1_IOTHUB_DEV_CONN_STR}";
                 break;
