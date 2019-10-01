@@ -235,8 +235,8 @@ class MainController {
         ::log("[Main] MP Log onScheduledWake:" + reason);
 
         local now = date();
-        Logger.storeOfflineLog(now, formatData(now), reason, "onScheduledWake", null, null);
-        
+        Logger.storeOfflineLog(now, formatDate(now), reason, "onScheduledWake", null, null);
+
         // Configure Interrupt Wake Pin
         // No need to (re)enable movement detection, these settings
         // are stored in the accelerometer registers. Just need  
