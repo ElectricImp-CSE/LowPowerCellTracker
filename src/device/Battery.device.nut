@@ -39,17 +39,64 @@ const FG_RECOVERY_V       = 3.88;   // V
 
 const BATT_STATUS_CHECK_TIMEOUT = 0.5;
 
+enum TRACKER_BATT_TYPE {
+    RECHARGEABLE_2000,
+    PRIMARY_CELL
+}
+
 // Manages Battery Monitoring  
 // Dependencies: MAX17055, BQ25895M (may configure sensor i2c) Libraries
 // Initializes: MAX17055, BQ25895M Libraries
 class Battery {
     
-    charger = null;
-    fg      = null;
+    charger  = null;
+    fg       = null;
 
-    fgReady = null;
+    battType = null;
+    fgReady  = null;
 
-    constructor(configureI2C) {
+    constructor(_battType, configureI2C = false) {
+        battType = _battType;
+
+        switch(battType) {
+            case TRACKER_BATT_TYPE.RECHARGEABLE_2000:
+                ::debug("[Battery] Initializing Battery Charger and Fuel Guage");
+                _initRechargable(configureI2C);
+                break;
+            case TRACKER_BATT_TYPE.PRIMARY_CELL: 
+                ::debug("[Battery] Primary Cell battery monitoring not available");
+                // TODO: Sort out how to measure battery status
+                break;
+            default: 
+                ::error("[Battery] Unknown battery type: " + battType);
+        }
+    }
+
+    function getStatus(cb) {
+        switch(battType) {
+            case TRACKER_BATT_TYPE.RECHARGEABLE_2000:
+                _rechargableGetStatus(cb);
+                break;
+            case TRACKER_BATT_TYPE.PRIMARY_CELL:
+                ::debug("[Battery] Primary Cell battery status not available");
+                cb(null); 
+                break;
+            default: 
+                ::error("[Battery] Unknown battery type: " + battType);
+        }
+    }
+
+    function _rechargableGetStatus(cb) {
+        if (fgReady) {
+            cb(fg.getStateOfCharge());
+        } else {
+            imp.wakeup(BATT_STATUS_CHECK_TIMEOUT, function() {
+                getStatus(cb);
+            }.bindenv(this))
+        }
+    }
+
+    function _initRechargable(configureI2C) {
         if (configureI2C) SENSOR_I2C.configure(CLOCK_SPEED_400_KHZ);
 
         charger = BQ25895(SENSOR_I2C, BATT_CHGR_ADDR);
@@ -76,15 +123,5 @@ class Battery {
                 fgReady = true;
             }
         }.bindenv(this));
-    }
-
-    function getStatus(cb) {
-        if (fgReady) {
-            cb(fg.getStateOfCharge());
-        } else {
-            imp.wakeup(BATT_STATUS_CHECK_TIMEOUT, function() {
-                getStatus(cb);
-            }.bindenv(this))
-        }
     }
 }

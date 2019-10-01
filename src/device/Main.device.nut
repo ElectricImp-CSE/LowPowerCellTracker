@@ -354,7 +354,10 @@ class MainController {
         // NOTE: I2C is configured when Motion class is initailized in the 
         // constructor of this class, so we don't need to configure it here.
         // Initialize Battery Monitor without configuring i2c
-        local battery = Battery(false);
+        // Select Battery type: 
+            // TRACKER_BATT_TYPE.RECHARGEABLE_2000 
+            // TRACKER_BATT_TYPE.PRIMARY_CELL
+        local battery = Battery(TRACKER_BATT_TYPE.RECHARGEABLE_2000, false);
         battery.getStatus(onBatteryStatus.bindenv(this));
     }
 
@@ -402,7 +405,8 @@ class MainController {
         reportTimer = imp.wakeup(GPS_TIMEOUT, onReportTimerExpired.bindenv(this)) 
     
         local now = date();
-        Logger.storeOfflineLog(now, formatDate(now), lmp.wakeReasonDesc(), "setReportTimer", "reportTimer", reportTimer);
+        local reason = lpm.wakeReasonDesc();
+        Logger.storeOfflineLog(now, formatDate(now), reason, "setReportTimer", "reportTimer", reportTimer);
     }
 
     function cancelReportTimer() {
@@ -472,9 +476,11 @@ class MainController {
 
     // Stores battery status for use in report
     function onBatteryStatus(status) {
-        ::debug("[Main] Get battery status complete:")
-        ::debug("[Main] Remaining cell capacity: " + status.capacity + "mAh");
-        ::debug("[Main] Percent of battery remaining: " + status.percent + "%");
+        ::debug("[Main] Get battery status complete:");
+        if (status != null) {
+            ::debug("[Main] Remaining cell capacity: " + status.capacity + "mAh");
+            ::debug("[Main] Percent of battery remaining: " + status.percent + "%");
+        }
         battStatus = status;
     }
 
@@ -516,7 +522,8 @@ class MainController {
         ::debug("[Main] Setting sleep timer: " + sleepTime + "s");
 
         local d = date();
-        Logger.storeOfflineLog(d, formatDate(d), lpm.wakeReasonDesc(), "getSleepTimer", "sleepTime", sleepTime);
+        local reason = lpm.wakeReasonDesc();
+        Logger.storeOfflineLog(d, formatDate(d), reason, "getSleepTimer", "sleepTime", sleepTime);
 
         return sleepTime;
     }
@@ -537,12 +544,11 @@ class MainController {
             // Check if container is upright
             getContainerPosition();
             // Get battery status
-            // NOTE: Until Hardware determination and Fuel Gauge Library 
-            // implemented. Don't include battery status in report.
-            // getBattStatus();
+            getBattStatus();
 
             local d = date();
-            Logger.storeOfflineLog(d, formatDate(d), lpm.wakeReasonDesc(), "getSleepTimer", null, null);
+            local reason = lpm.wakeReasonDesc();
+            Logger.storeOfflineLog(d, formatDate(d), reason, "getSleepTimer", null, null);
         } else {
             // Go to sleep
             powerDown();
@@ -583,7 +589,8 @@ class MainController {
         persist.setReportTime(now);
 
         local d = date();
-        Logger.storeOfflineLog(d, formatDate(d), lpm.wakeReasonDesc(), "overwriteStoredConnectSettings", "setReportTime/setWakeTime", d);
+        local reason = lpm.wakeReasonDesc();
+        Logger.storeOfflineLog(d, formatDate(d), reason, "overwriteStoredConnectSettings", "setReportTime/setWakeTime", d);
     }
 
     // Returns boolean, checks for event(s) or if report time has passed

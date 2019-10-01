@@ -142,7 +142,7 @@ class Motion {
             // Check reading against expected to determine if container is upright 
             ::log("[Motion] x:" + reading.x);
             ::log("[Motion] y:" + reading.y);
-            ::log("[Motion] z:" +r eading.z);
+            ::log("[Motion] z:" + reading.z);
 
             // cb(_inRange(reading.x, ACCEL_UPRIGHT_X) && 
             //    _inRange(reading.y, ACCEL_UPRIGHT_Y) &&

@@ -34,9 +34,9 @@ class Cloud {
     _deviceID  = null;
 
     constructor() {
+        _deviceID = imp.configparams.deviceid;
         // Stores this devices connection string in class variable
         _getDeviceConnString();
-        _deviceID = imp.configparams.deviceid;
 
         if (devConnStr != null) { 
             client = AzureIoTHub.Client(devConnStr, _onConnected.bindenv(this), _onDisconnected.bindenv(this));
@@ -47,6 +47,11 @@ class Cloud {
     }
 
     function send(data) {
+        ::log("In cloud send data: ");
+        ::log(http.jsonencode(data));
+        ::log("Not sending to cloud while developing!!!");
+        return;
+
         if (devConnStr == null) return;
         // TODO: 
         // Format report data if more that json encoding the report table is needed
