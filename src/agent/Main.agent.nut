@@ -104,10 +104,9 @@ class MainController {
             if (cellInfo != null) {
                 // Get location data from cell info and Google Maps API
                 loc.getLocCellInfo(cellInfo, function(location) {
-                    if ("lat" in location && "lon" in location) {
-                        report.locType <- "gmapsAPI";
-                        report.location <- location;
-                    }
+                    report.locType <- "gmapsAPI";
+                    // Note: location will be `null` if response did not contain expected data or an error
+                    report.location <- location;
                     cloud.send(report);
                 }.bindenv(this));
                 return;

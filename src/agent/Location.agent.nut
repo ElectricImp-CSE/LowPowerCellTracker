@@ -86,17 +86,31 @@ class Location {
             local parsed   = null;
             local location = null;
             try {
-                ::debug("[Location] Google Maps Location response: " + resp.body);
                 parsed = http.jsondecode(resp.body);
+                // foreach(k, v in parsed) {
+                //     ::debug("[Location] Google Maps Location response body key   : " + k);
+                //     ::debug("[Location] Google Maps Location response body value : " + v);
+                //     if (typeof v == "table") {
+                //         foreach(key, val in v) {
+                //             ::debug("[Location] Google Maps Location response body " + v + " key   : " + key);
+                //             ::debug("[Location] Google Maps Location response body " + v + " value : " + val);
+                //         }
+                //     }
+                // }
             } catch(e) {
                 ::error("[Location] Geolocation parsing error: " + e);
             }
             
             if (resp.statuscode == 200) {
-                local l = parsed.location;
-                location = {
-                    "lat" : l.lat,
-                    "lon" : l.lng
+                try {
+                    local l = parsed.location;
+                    location = {
+                        "accuracy" : parsed.accuracy,
+                        "lat"      : l.lat,
+                        "lon"      : l.lng
+                    }
+                } catch (e) {
+                    ::error("[Location] Geolocation response parsing error: " + e);
                 }
             } else {
                 ::error("[Location] Geolocation unexpected reponse: " + resp.statuscode);
