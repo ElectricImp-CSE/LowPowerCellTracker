@@ -95,6 +95,7 @@ class MainController {
     battStatus  = null;
     thReading   = null;
     isUpright   = null;
+    cellInfo    = null;
     readyToSend = null;
     sleep       = null;
     reportTimer = null;
@@ -210,6 +211,7 @@ class MainController {
         if (fix == null) {
             // Flag used to trigger report send from inside location callback
             readyToSend = true;
+            
             // We don't have a fix, request assist online data
             ::debug("[Main] Requesting assist messages from agnet/cloud.");
             local mmHandlers = {
@@ -217,6 +219,9 @@ class MainController {
                 "onFail"  : mmOnAssistFail.bindenv(this)
             };
             mm.send(MM_ASSIST, null, mmHandlers);
+
+            // Get cellInfo to add to report
+            imp.net.getcellinfo(onCellInfo.bindenv(this));
         } else {
             sendReport();
         }
@@ -325,6 +330,9 @@ class MainController {
                 // Add to report if fix was within the reporting accuracy
                 if (mostAccFix.accuracy <= LOCATION_REPORT_ACCURACY) report.fix <- mostAccFix;
             } 
+            // If we got any cellular conneciton info add that to report, can be used to 
+            // get location from Google Maps
+            if (cellInfo != null)  report.cellInfo <- cellInfo;
         }
 
         // Toggle send flag
@@ -418,6 +426,11 @@ class MainController {
 
     // Async Action Handlers 
     // -------------------------------------------------------------
+
+    // Cellular connection information
+    function onCellInfo(_cellInfo) {
+        cellInfo = _cellInfo;
+    }
 
     // Pin state change callback & on wake pin action
     // If event valid, disables movement interrupt and store movement flag
@@ -575,7 +588,7 @@ class MainController {
         }
 
         // Put device to sleep 
-        ::log("[Main] MP Log Put device to sleep, sleeptime is not null " + sleepTime );
+        ::log("[Main] MP Log Put device to sleep, sleeptime is not null " + sleepTime);
         (sleep != null) ? sleep() : lpm.sleepFor(sleepTime);
     }
 

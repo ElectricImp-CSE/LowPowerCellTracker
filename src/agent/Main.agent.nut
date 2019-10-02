@@ -72,25 +72,49 @@ class MainController {
         ::debug(http.jsonencode(report));
         // Report Structure (movement, fix and battStatus only included if data was collected)
             // { 
-            //     "fix" : {                                    // Only included if fix was obtained
-            //         "accuracy"    : 9.3620005,               // fix accuracy
-            //         "secToFix"    : 36.978001,               // sec from boot til accurate fix 
-            //         "lat"         : "37.3957215",            // latitude
-            //         "numSats"     : 10,                      // number of satellites used in fix
-            //         "lon"         : "-122.1022552",          // longitude
-            //         "fixType"     : 3,                       // type of fix
-            //         "secTo1stFix" : 9.1499996,               // ms from boot til first fix (not accurate)
-            //         "time"        : "2019-03-01T19:10:32Z"   // time from GPS message
-            //     }, 
-            //     "ts"               : 1551467430,             // Always included, timestamp when report sent
-            //     "secSinceBoot"     : 55.665001,                  // Always included
-            //     "movement"         : true,                   // Only included if movement event occured
-            //     "containerUpright" : true,                   // Only included if Accel reading successful
-            //     "temperature"      : 26.557394,              // Only included if temp/humid reading successful
-            //     "humidity"         : 34.07618                // Only included if temp/humid reading successful
+            //   "movement"         : false,                                                            // Always included
+            //   "ts"               : 1569974900,                                                       // Always included
+            //   "secSinceBoot"     : 31.018999,                                                        // Always included
+            //   "vbat"             : 3.352,                                                            // Always included
+            //   "temperature"      : 22.598141,                                                        // Only included if temp/humid reading successful
+            //   "humidity"         : 35.03088,                                                         // Only included if temp/humid reading successful
+            //   "containerUpright" : false,                                                            // Only included if Accel reading successful
+            //   "battStatus"       : {                                                                 // Only included if rechargable battery status reading is successful
+            //                          "percent"  : 13.085938, 
+            //                          "capacity" : 261.5 
+            //                        },
+            //   "cellInfo"         : "4G,2175,4,10,10,FDD,310,410,8B3F,A211A16,347,58,-104,-8.5,CONN"  // Only included if accurate fix was NOT obtained
+            //   "fix"              : {                                                                 // Only included if fix was obtained
+            //                          "secToFix"    : 31.018, 
+            //                          "fixType"     : 3, 
+            //                          "lat"         : "37.3953878", 
+            //                          "numSats"     : 13, 
+            //                          "lon"         : "-122.1023261", 
+            //                          "accuracy"    : 4.9060001, 
+            //                          "time"        : "2019-10-02T00:08:21Z", 
+            //                          "secTo1stFix" : 3.375 
+            //                        }   
             // }
+            
+        // Get location from API if GPS was not able to get fix
+        if (!("fix" in report) && "cellInfo" in report) {
+            ::debug("[Main] Cell Info: " + report.cellInfo);
+            local cellInfo = loc.parseCellInfo(report.cellInfo);
 
-        // TODO: Send device data to cloud service
+            if (cellInfo != null) {
+                // Get location data from cell info and Google Maps API
+                loc.getLocCellInfo(cellInfo, function(location) {
+                    if ("lat" in location && "lon" in location) {
+                        report.locType <- "gmapsAPI";
+                        report.location <- location;
+                    }
+                    cloud.send(report);
+                }.bindenv(this));
+                return;
+            }
+        }
+        
+        if ("fix" in report) report.locType <- "gps";
         cloud.send(report);
     }
 
