@@ -49,7 +49,7 @@ class MainController {
         // Initialize Logger 
         Logger.init(LOG_LEVEL.DEBUG);
 
-        ::debug("Agent started...");
+        ::debug("[Main] Agent started...");
 
         // Initialize Assist Now Location Helper
         loc = Location();
@@ -68,7 +68,7 @@ class MainController {
     function processReport(msg, reply) {
         local report = msg.data;
 
-        ::debug("Recieved status update from devcie: ");
+        ::debug("[Main] Recieved status update from devcie: ");
         ::debug(http.jsonencode(report));
         // Report Structure (movement, fix and battStatus only included if data was collected)
             // { 
@@ -118,11 +118,11 @@ class MainController {
     }
 
     function getAssist(msg, reply) {
-        ::debug("Requesting online assist messages from u-blox webservice");
+        ::debug("[Main] Requesting online assist messages from u-blox webservice");
         loc.getOnlineAssist(function(assistMsgs) {
-            ::debug("Received online assist messages from u-blox webservice");
+            ::debug("[Main] Received online assist messages from u-blox webservice");
             if (assistMsgs != null) {
-                ::debug("Sending device online assist messages");
+                ::debug("[Main] Sending device online assist messages");
                 reply(assistMsgs);
             }
         }.bindenv(this))

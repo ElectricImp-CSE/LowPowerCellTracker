@@ -42,14 +42,14 @@ class Cloud {
             client = AzureIoTHub.Client(devConnStr, _onConnected.bindenv(this), _onDisconnected.bindenv(this));
             client.connect();
         } else {
-            ::error("No Azure IoT Hub credentials for this device. Connection to Azure IoT Hub NOT established");
+            ::error("[Cloud] No Azure IoT Hub credentials for this device. Connection to Azure IoT Hub NOT established");
         }
     }
 
     function send(data) {
-        ::log("In cloud send data: ");
+        ::log("[Cloud] In cloud send data: ");
         ::log(http.jsonencode(data));
-        ::log("Not sending to cloud while developing!!!");
+        ::log("[Cloud] Not sending to cloud while developing!!!");
         return;
 
         if (devConnStr == null) return;
@@ -62,29 +62,29 @@ class Cloud {
 
     function _onMsgSent(err, msg) {
         if (err != 0) {
-            ::error("IotHub send message failed: " + err);
+            ::error("[Cloud] IotHub send message failed: " + err);
             // TODO: Implement retry sending
             return;
         }
-        ::debug("IoTHub message sent");
+        ::debug("[Cloud] IoTHub message sent");
     }
 
     function _onConnected(err) {
         if (err != 0) {
-            ::error("IotHub connect failed: " + err);
+            ::error("[Cloud] IotHub connect failed: " + err);
             return;
         }
-        ::debug("IoTHub connected");
+        ::debug("[Cloud] IoTHub connected");
     }
 
     function _onDisconnected(err) {
         if (err != 0) {
-            ::error("IoTHub disconnected unexpectedly with code: " + err);
+            ::error("[Cloud] IoTHub disconnected unexpectedly with code: " + err);
             
             // Reconnect if disconnection is not initiated by application
             client.connect();
         } else {
-            ::debug("IoTHub disconnected by application");
+            ::debug("[Cloud] IoTHub disconnected by application");
         }
     }
 

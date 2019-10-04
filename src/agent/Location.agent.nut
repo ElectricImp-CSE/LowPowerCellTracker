@@ -51,9 +51,9 @@ class Location {
         assist.requestOnline(assistOnlineParams, function(err, resp) {
             local assistData = null;
             if (err != null) {
-                ::error("Online req error: " + err);
+                ::error("[Location] Online req error: " + err);
             } else {
-                ::debug("Received AssistNow Online. Data length: " + resp.body.len());
+                ::debug("[Location] Received AssistNow Online. Data length: " + resp.body.len());
                 assistData = resp.body;
             }
             onResp(assistData);
@@ -109,7 +109,7 @@ class Location {
                         "lat"      : l.lat,
                         "lon"      : l.lng
                     }
-                } catch (e) {
+                } catch(e) {
                     ::error("[Location] Geolocation response parsing error: " + e);
                 }
             } else {
